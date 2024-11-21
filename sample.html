@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependent Dropdown</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/main.js"></script>
+</head>
+<body>
+
+<form>
+    <div>
+        <label for="regionSelect">Region</label>
+        <select id="regionSelect" onchange="loadProvinces(); updateRegionText(); clearFields();">            <option value="">Select Region</option>
+        </select>
+    </div>
+    <div>
+        <label for="provinceSelect">Province</label>
+        <select id="provinceSelect" onchange="loadCities(); updateProvinceText(); clearFields();">            <option value="">Select Province</option>
+        </select>
+    </div>
+    <div>
+        <label for="citySelect">City</label>
+        <select id="citySelect" onchange="loadBarangays(); updateCityText();clearFields();">            <option value="">Select City</option>
+        </select>
+    </div>
+    <div>
+        <label for="barangaySelect">Barangay</label>
+        <select id="barangaySelect" onchange="updateBarangayText();clearFields();">
+            <option value="">Select Barangay</option>
+        </select>
+
+        <input type="text" id="region_value" value="" onkeyup="empty_cell()">
+        <input type="text" id="province_value" value="">
+        <input type="text" id="mun_value" value="">
+        <input type="text" id="barangay_value">
+    </div>
+</form>
+
+</body>
+</html>
+
+<script>
+
+let regions = [];
+let provinces = [];
+let cities = [];
+let barangays = [];
+
+// Load JSON data
+$(document).ready(function() {
+    $.getJSON('/table_region.json', function(data) {
+        regions = data;
+        populateRegions();
+    });
+
+    $.getJSON('/table_province.json', function(data) {
+        provinces = data;
+    });
+
+    $.getJSON('/table_municipality.json', function(data) {
+        cities = data;
+    });
+
+    $.getJSON('/table_barangay.json', function(data) {
+        barangays = data;
+    });
+});
+
+// Populate regions dropdown
+function populateRegions() {
+    regions.forEach(region => {
+        $('#regionSelect').append(`<option value="${region.region_id}">${region.region_name}</option>`);
+        
+    });
+}
+
+// Load provinces based on selected region
+function loadProvinces() {
+    const regionId = $('#regionSelect').val();
+    $('#provinceSelect').empty().append('<option value="">Select Province</option>');
+    $('#citySelect').empty().append('<option value="">Select City</option>');
+    $('#barangaySelect').empty().append('<option value="">Select Barangay</option>');
+
+    provinces.forEach(province => {
+        if (province.region_id == regionId) {
+            $('#provinceSelect').append(`<option value="${province.province_id}">${province.province_name}</option>`);
+        } 
+    });
+
+}
+
+// Load cities based on selected province
+function loadCities() {
+    const provinceId = $('#provinceSelect').val();
+    $('#citySelect').empty().append('<option value="">Select City</option>');
+    $('#barangaySelect').empty().append('<option value="">Select Barangay</option>');
+
+    cities.forEach(city => {
+        if (city.province_id == provinceId) {
+            $('#citySelect').append(`<option value="${city.municipality_id}">${city.municipality_name}</option>`);
+        }
+    });
+}
+
+// Load barangays based on selected city
+function loadBarangays() {
+    const cityId = $('#citySelect').val();
+    $('#barangaySelect').empty().append('<option value="">Select Barangay</option>');
+
+    barangays.forEach(barangay => {
+        if (barangay.municipality_id == cityId) {
+            $('#barangaySelect').append(`<option value="${barangay.barangay_id}">${barangay.barangay_name}</option>`);
+        }
+    });
+}
+
+function updateRegionText() {
+        const selectedRegionText = $('#regionSelect option:selected').text();
+        $('#region_value').val(selectedRegionText);
+
+      
+    }
+    function updateProvinceText() {
+        const selectedProvinceText = $('#provinceSelect option:selected').text();
+        $('#province_value').val(selectedProvinceText);
+      
+    }
+    function updateCityText() {
+        const selectedcityText = $('#citySelect option:selected').text();
+        $('#mun_value').val(selectedcityText);
+      
+    }
+    function updateBarangayText() {
+        const selectedbarText = $('#barangaySelect option:selected').text();
+        $('#barangay_value').val(selectedbarText);
+      
+    }
+   
+</script>
